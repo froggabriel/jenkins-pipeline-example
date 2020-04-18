@@ -58,10 +58,12 @@ pipeline {
             // steps after stage
             post {
                 always {
-                    // double quotes allow for variable interpolation
-                    junit "${junitPath}"
-                    // if the variable is not being concatenated, this syntax also works:
-                    // junit junitPath
+                    dir('simple-java-maven-app') {
+                        // double quotes allow for variable interpolation
+                        junit "${junitPath}"
+                        // if the variable is not being concatenated, this syntax also works:
+                        // junit junitPath
+                    }
                 }
             }
         }
@@ -75,7 +77,7 @@ pipeline {
                 container('docker') {
                     // multiline string with support for varialbe interpolation
                     sh """
-                    docker build -t ${imageTag} -f Dockerfile .'
+                    docker build -t ${imageTag} -f Dockerfile .
                     docker push ${imageTag}
                     """
                 }
