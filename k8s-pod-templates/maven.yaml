@@ -1,0 +1,43 @@
+apiVersion: "v1"
+kind: "Pod"
+metadata:
+  annotations: {}
+  # this label lets jenkins know that this pod is needs to be managed
+  # all k8s slave pods must have this label
+  labels:
+    jenkins: "slave"
+spec:
+  containers:
+    # container for building and pushing docker images
+    # pre-configured with ala-artifactory credentials
+  - name: "maven" # this name is used inside the pipeline as a label for the container
+    image: "maven:3.6.3-jdk-8-slim"
+    imagePullPolicy: "IfNotPresent"
+    # resource limits should be set when usage is known
+    resources:
+      limits: {}
+      requests: {}
+    securityContext:
+      privileged: false
+    tty: true
+    # cat command keeps container alive
+    command: ["cat"]
+    volumeMounts:
+    - mountPath: "/home/jenkins/agent"
+      name: "workspace-volume"
+      readOnly: false
+    workingDir: "/home/jenkins/agent"
+  # default container for communication with the jenkins master
+  # always included in k8s slave pods
+  - name: "jnlp"
+    image: "jenkins/jnlp-slave:alpine"
+    volumeMounts:
+    - mountPath: "/home/jenkins/agent"
+      name: "workspace-volume"
+      readOnly: false
+  restartPolicy: "Never"
+  volumes:
+  # this volume shares the job workspace between containers
+  - emptyDir:
+      medium: ""
+    name: "workspace-volume"
