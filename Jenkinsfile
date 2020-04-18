@@ -64,16 +64,24 @@ pipeline {
                         // if the variable is not being concatenated, this syntax also works:
                         // junit junitPath
                     }
+                    // stash a directory (to the master)
+                    stash(
+                        name: 'simple-java-maven-app',
+                        allowEmpty: true,
+                        includes: 'simple-java-maven-app/**')
                 }
             }
         }
         stage('Build Docker Image') {
             agent {
+                // this is a separate pod and will not share a workspace with the pod above
                 kubernetes {
                     yamlFile 'k8s-pod-templates/docker.yaml'
                 }
             }
             steps {
+                // to use simple-java-maven-app, we will need to unstash it
+                unstash(name: 'simple-java-maven-app')
                 container('docker') {
                     // multiline string with support for varialbe interpolation
                     sh """
